@@ -1,0 +1,10 @@
+RANDOM_SEED = 2023
+BATCH_SIZE = 16
+EPOCH_NUM = 50
+FOLD_NUM = 5
+num_channels = 3
+image_size = (224, 224)
+CUDA_VISIBLE_DEVICES = 0
+KMP_DUPLICATE_LIB_OK = TRUE
+TF_FORCE_GPU_ALLOW_GROWTH = true
+data_dir: = ./data/merged_aug_data_224
