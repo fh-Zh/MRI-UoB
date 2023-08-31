@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Classification</title>
+</head>
+<body>
+<h1>Image Classification</h1>
+
+<form id="upload-form" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="file" name="image">
+    <button type="submit">Upload and Classify</button>
+</form>
+
+<div id="progress-container"></div>
+
+<div id="result" style="display: none;">
+    <h2>Classification Result:</h2>
+    <p id="result-text"></p>
+</div>
+
+<div id="uploaded-image" style="display: none;">
+    <h2>Uploaded Image:</h2>
+    <img id="uploaded-image-tag" src="" alt="Uploaded Image">
+</div>
+
+<script>
+    const form = document.getElementById("upload-form");
+    const progressContainer = document.getElementById("progress-container");
+    const resultDiv = document.getElementById("result");
+    const resultText = document.getElementById("result-text");
+    const uploadedImageDiv = document.getElementById("uploaded-image");
+    const uploadedImageTag = document.getElementById("uploaded-image-tag");
+    const labelMapping = {
+            0: "Mild",
+            1: "Moderate",
+            2: "Non"
+        };
+
+    let uploadSuccessShown = false; // Flag to track whether "Upload successful!" is already shown
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const formData = new FormData(form);
+
+        try {
+            const response = await fetch("/classify/", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (response.ok) {
+                if (!uploadSuccessShown) {
+                    appendProgress("Upload successful!", "green");
+                    uploadSuccessShown = true;
+                }
+                const data = await response.json();
+                const classificationLabel = labelMapping[data.result];
+                resultText.textContent = "Classification Result: " + classificationLabel;
+                resultDiv.style.display = "block";
+
+                // Display uploaded image
+                const imageUrl = URL.createObjectURL(formData.get("image"));
+                uploadedImageTag.src = imageUrl;
+                uploadedImageDiv.style.display = "block";
+            } else {
+                if (!uploadSuccessShown) {
+                    appendProgress("Upload failed. Please try again.", "red");
+                    uploadSuccessShown = true;
+                }
+            }
+        } catch (error) {
+            console.log("An error occurred:", error);
+            if (!uploadSuccessShown) {
+                appendProgress("Classification process error. Please try again.", "red");
+                uploadSuccessShown = true;
+            }
+        }
+    });
+
+    function appendProgress(message, color) {
+        const progressElement = document.createElement("p");
+        progressElement.textContent = message;
+        progressElement.style.color = color;
+        progressContainer.innerHTML = ""; // Clear existing progress
+        progressContainer.appendChild(progressElement);
+    }
+</script>
+</body>
+</html>
